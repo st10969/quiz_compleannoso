@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quiz di Compleanno</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background-color: #fff8dc;
+      color: #333;
+      margin: 0;
+      padding: 20px;
+      text-align: center;
+    }
+
+    .hidden {
+      display: none;
+    }
+
+    button {
+      padding: 10px 20px;
+      font-size: 16px;
+      margin: 10px;
+      cursor: pointer;
+      background-color: #ffb347;
+      border: none;
+      border-radius: 5px;
+      color: white;
+    }
+
+    button:hover {
+      background-color: #ffa500;
+    }
+
+    .question {
+      margin-top: 20px;
+    }
+
+    .score {
+      position: fixed;
+      top: 10px;
+      right: 10px;
+      background: #f8f8f8;
+      padding: 10px;
+      border-radius: 10px;
+      font-weight: bold;
+    }
+  </style>
+</head>
+<body>
+  <div id="app">
+    <div id="intro">
+      <h1>CIAO NICIOLA CARO E BUON COMPLEANNO!</h1>
+      <p>Ti ringraziamo per averci invitato al tuo compleanno e perciò ti abbiamo voluto fare un pensierino</p>
+      <p>Ma per averlo dovrai prima fare questo quiz</p>
+      <button onclick="startIntro()">Iniziamo!</button>
+    </div>
+    <div id="terms" class="hidden">
+      <h2>La sfida ora inizia</h2>
+      <p>Rispondi correttamente a queste domande e vedrai cosa ti aspetterà</p>
+      <p>Se rispondi correttamente a una domanda avrai 3 punti e se sbagli -1 punto</p>
+      <p>In base al punteggio che realizzerai ci sarà una sfida diversa</p>
+      <p>Da ora avrai 10 domande, buona fortuna!</p>
+      <label><input type="checkbox" id="acceptTerms"> Ho letto e accetto i termini e le condizioni</label><br>
+      <button onclick="startGame()">Giochiamo!</button>
+    </div>
+    <div id="quiz" class="hidden">
+      <div class="score">Punti: <span id="score">0</span></div>
+      <div class="question" id="questionBox"></div>
+    </div>
+    <div id="result" class="hidden">
+      <h2>Punteggio finale: <span id="finalScore"></span></h2>
+      <p id="challengeType"></p>
+    </div>
+  </div>
+  <audio id="correctSound" src="Correct Answer sound effect.mp3"></audio>
+  <audio id="wrongSound" src="Wrong Answer Sound effect.mp3"></audio>
+  
+  <script>
+    let score = 0;
+    let currentQuestion = 0;
+
+    const questions = [
+      {
+        text: "A cosa è uguale la moto?",
+        answers: ["Moto", "Figa", "Planche full del cardinale nudo"],
+        correct: 1
+      },
+      {
+        text: "Nel formalismo della meccanica quantistica, quale tra le seguenti affermazioni descrive correttamente l'effetto della non commutatività degli operatori associati a osservabili canoniche sullo spazio di Hilbert?",
+        answers: [
+          "Gli operatori associati a grandezze osservabili commutano sempre, il che garantisce la simultanea diagonalizzazione",
+          "La non commutatività degli operatori implica che lo spettro degli autovalori è continuo per ogni osservabile",
+          "La relazione di commutazione implica che le osservabili e non possiedono un sistema completo di autostati comuni"
+        ],
+        correct: 2
+      },
+      {
+        text: "Quanto fa 2x2?",
+        answers: ["4", "Husqvarna SM 125 2t 2009 targa: DN32300", "Viva la figa"],
+        correct: 2
+      },
+      {
+        text: "Come si chiama la tua fidanzata?",
+        answers: ["Elena Mammone", "Tener(on)e 700", "Filippo Campolucci"],
+        correct: 0
+      },
+      {
+        text: "Quanto seme eroga il ciolone di un brodo medio in L/s?",
+        answers: ["Tung tung tung tung tung tung sahur", "Dipende dal colore della pelle", "Sborro"],
+        correct: 0
+      },
+      {
+        text: "Quale modello di Gibson Jimmy Page ha utilizzato per realizzare Staiway to Heaven?",
+        answers: ["Gibson Les Paul", "Gibson Double Neck SG", "Gibson SG"],
+        correct: 1
+      },
+      {
+        text: "Tette o culo?",
+        answers: ["Moto", "Moto", "Moto"],
+        correct: -1
+      },
+      {
+        text: "Qual è il modello di sedia a rotelle più prestazionale ad oggi?",
+        answers: ["Tenere 700", "Gima 43250 Queen", "Pepe Mobility Autospinta Pieghevole"],
+        correct: 1
+      },
+      {
+        text: "Di chi è il pitone più maestoso?",
+        answers: ["Marco Sardella", "Carlo Cardinaletti", "Perchè pensi ai pitoni e no alla figa?"],
+        correct: 2
+      },
+      {
+        text: "Ti è piaciuto il quiz?",
+        answers: ["Si", "No", "Piaciuto quanto mi piacciono le vecchie"],
+        correct: [0, 2]
+      }
+    ];
+
+    function startIntro() {
+      document.getElementById("intro").classList.add("hidden");
+      document.getElementById("terms").classList.remove("hidden");
+    }
+
+    function startGame() {
+      const checkbox = document.getElementById("acceptTerms");
+      if (!checkbox.checked) {
+        alert("Devi accettare i termini per iniziare!");
+        return;
+      }
+      document.getElementById("terms").classList.add("hidden");
+      document.getElementById("quiz").classList.remove("hidden");
+      loadQuestion();
+    }
+
+    function loadQuestion() {
+      const box = document.getElementById("questionBox");
+      box.innerHTML = "";
+
+      if (currentQuestion >= questions.length) {
+        finishGame();
+        return;
+      }
+
+      const q = questions[currentQuestion];
+      const questionText = document.createElement("h3");
+      questionText.textContent = q.text;
+      box.appendChild(questionText);
+
+      q.answers.forEach((answer, index) => {
+        const btn = document.createElement("button");
+        btn.textContent = answer;
+        btn.onclick = () => handleAnswer(index);
+        box.appendChild(btn);
+      });
+    }
+
+    function handleAnswer(index) {
+      const correctAudio = document.getElementById("correctSound");
+      const wrongAudio = document.getElementById("wrongSound");
+      const q = questions[currentQuestion];
+
+      if (currentQuestion === 9) {
+        if (index === 1) {
+          score = 0;
+          wrongAudio.play();
+        } else {
+          score += 3;
+          correctAudio.play();
+        }
+      } else if (q.correct === -1 || (Array.isArray(q.correct) && !q.correct.includes(index))) {
+        score -= 1;
+        wrongAudio.play();
+      } else if (Array.isArray(q.correct) ? q.correct.includes(index) : index === q.correct) {
+        score += 3;
+        correctAudio.play();
+      } else {
+        score -= 1;
+        wrongAudio.play();
+      }
+
+      document.getElementById("score").textContent = score;
+      currentQuestion++;
+      setTimeout(loadQuestion, 1000);
+    }
+
+    function finishGame() {
+      document.getElementById("quiz").classList.add("hidden");
+      document.getElementById("result").classList.remove("hidden");
+      document.getElementById("finalScore").textContent = score;
+
+      let challenge = "";
+      if (score < 0) challenge = "La sfida è impossibile!";
+      else if (score <= 10) challenge = "La sfida è difficile!";
+      else if (score <= 20) challenge = "La sfida è normale!";
+      else challenge = "La sfida è facile!";
+
+      document.getElementById("challengeType").textContent = challenge;
+    }
+  </script>
+</body>
+</html>
